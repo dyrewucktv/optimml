@@ -2,3 +2,5 @@ torch==2.3.0
 torchvision==0.18.0
 timm==0.9.16
 seaborn==0.13.2
+loguru==0.7.2
+pytorch_lightning==2.2.4

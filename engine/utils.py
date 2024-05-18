@@ -45,4 +45,5 @@ def get_accuracy(loader: DataLoader, model: nn.Module) -> float:
         (concat(predictions).to(device) == concat(labels).to(device))
         .float()
         .mean()
+        .item()
     )
