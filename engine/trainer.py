@@ -15,7 +15,7 @@ from .utils import detach_and_copy_to_cpu, device, optimal_lr
 class TrainingResults:
     losses: list[float]
     scheduler_lrs: list[float]
-    optimal_lrs: list[float]
+    optimal_lrs: list[dict[str, Tensor]]
 
 
 class Trainer:

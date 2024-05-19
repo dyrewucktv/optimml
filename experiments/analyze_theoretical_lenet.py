@@ -54,7 +54,7 @@ def main():
             with open(
                 OUTPUT_PATH / scheduler_name / f"model_{i}.pkl", "wb"
             ) as f:
-                pkl.dump(results, f)
+                pkl.dump(model, f)
             with open(
                 OUTPUT_PATH / scheduler_name / f"accuracies_{i}.json", "w"
             ) as f:
