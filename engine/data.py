@@ -1,7 +1,11 @@
 from typing import Literal
 
 import torch
+import torch.utils
+import torch.utils.data
 from torchvision import datasets, transforms
+
+from .utils import device
 
 TRANSFORMS = {
     "lenet": transforms.Compose(
@@ -39,11 +43,26 @@ def get_loaders(network: Literal["lenet", "mlp"]):
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
         batch_size=128,
-        shuffle=True,
+        shuffle=False,
         num_workers=16,
     )
+    test_Xs = torch.concat([batch[0] for batch in train_loader]).to(device)
+    test_ys = torch.concat([batch[1] for batch in train_loader]).to(device)
+    train_loader = torch.utils.data.DataLoader(
+        dataset=torch.utils.data.TensorDataset(test_Xs, test_ys),
+        batch_size=128,
+        shuffle=True,
+    )
+
     test_loader = torch.utils.data.DataLoader(
         dataset=test_dataset,
+        batch_size=64,
+        shuffle=False,
+    )
+    test_Xs = torch.concat([batch[0] for batch in test_loader]).to(device)
+    test_ys = torch.concat([batch[1] for batch in test_loader]).to(device)
+    test_loader = torch.utils.data.DataLoader(
+        dataset=torch.utils.data.TensorDataset(test_Xs, test_ys),
         batch_size=64,
         shuffle=False,
     )

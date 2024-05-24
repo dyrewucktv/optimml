@@ -8,7 +8,10 @@ from torch.optim.lr_scheduler import LRScheduler
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .schedulers import make_super_scheduler_with_optimizer
+from .schedulers import (
+    get_param_groups_with_names,
+    make_super_scheduler_with_optimizer,
+)
 from .utils import detach_and_copy_to_cpu, device, optimal_lr
 
 
@@ -38,7 +41,9 @@ class Trainer:
         if self.scheduler_factory == make_super_scheduler_with_optimizer:
             optimizer, scheduler = make_super_scheduler_with_optimizer(model)
         else:
-            optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
+            optimizer = torch.optim.SGD(
+                get_param_groups_with_names(model), lr=1e-2
+            )
             scheduler = self.scheduler_factory(optimizer)
 
         losses = []
@@ -64,7 +69,12 @@ class Trainer:
                 # Calculate optimal LR
                 weights.append(detach_and_copy_to_cpu(model.state_dict()))
                 epsilon = optimizer.param_groups[0]["lr"]
-                scheduler_lrs.append(epsilon)
+                scheduler_lrs.append(
+                    {
+                        group["name"]: group["lr"]
+                        for group in optimizer.param_groups
+                    }
+                )
                 if len(weights) > 3:
                     weights.pop(0)
                     optimal_lrs.append(

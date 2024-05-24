@@ -66,9 +66,13 @@ class SuperLRScheduler(LRScheduler):
 
 
 def make_super_scheduler_with_optimizer(model):
-    param_groups = []
-    for name, parameter in model.named_parameters():
-        param_groups.append({"params": [parameter]})
-    optimizer = torch.optim.SGD(param_groups, lr=1e-2)
+    optimizer = torch.optim.SGD(get_param_groups_with_names(model), lr=1e-2)
     scheduler = SuperLRScheduler(optimizer)
     return optimizer, scheduler
+
+
+def get_param_groups_with_names(model):
+    return [
+        {"params": [parameter], "name": name}
+        for name, parameter in model.named_parameters()
+    ]

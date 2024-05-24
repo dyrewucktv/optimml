@@ -28,7 +28,7 @@ def main():
             "OneCycle",
             partial(
                 OneCycleLR,
-                max_lr=1e-3,
+                max_lr=1e-1,
                 steps_per_epoch=len(train_loader),
                 epochs=N_EPOCHS,
                 anneal_strategy="linear",
@@ -42,7 +42,7 @@ def main():
     for scheduler_name, scheduler_factory in SCHEDULER_FACTORIES:
         logger.info(f"Starting runs for {scheduler_name}")
         (OUTPUT_PATH / scheduler_name).mkdir(exist_ok=True, parents=True)
-        for i in range(1):
+        for i in range(10):
             logger.info(f"Starting run {i}")
             model = LeNet().to(device)
             trainer = Trainer(scheduler_factory)
