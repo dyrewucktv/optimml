@@ -9,7 +9,7 @@ from torch.optim.lr_scheduler import OneCycleLR
 
 from engine.data import get_loaders
 from engine.model import SimpleMlp
-from engine.schedulers import IdentityLR
+from engine.schedulers import IdentityLR, make_super_scheduler_with_optimizer
 from engine.trainer import Trainer
 from engine.utils import device, get_accuracy
 
@@ -35,13 +35,14 @@ def main():
                 three_phase=True,
             ),
         ),
+        ("SuperConvergence", make_super_scheduler_with_optimizer),
     ]
 
     logger.info("Running training multiple times.")
     for scheduler_name, scheduler_factory in SCHEDULER_FACTORIES:
         logger.info(f"Starting runs for {scheduler_name}")
         (OUTPUT_PATH / scheduler_name).mkdir(exist_ok=True, parents=True)
-        for i in range(10):
+        for i in range(1):
             logger.info(f"Starting run {i}")
             model = SimpleMlp().to(device)
             trainer = Trainer(scheduler_factory)
@@ -54,7 +55,7 @@ def main():
             with open(
                 OUTPUT_PATH / scheduler_name / f"model_{i}.pkl", "wb"
             ) as f:
-                pkl.dump(results, f)
+                pkl.dump(model, f)
             with open(
                 OUTPUT_PATH / scheduler_name / f"accuracies_{i}.json", "w"
             ) as f:

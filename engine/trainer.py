@@ -8,6 +8,7 @@ from torch.optim.lr_scheduler import LRScheduler
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from .schedulers import make_super_scheduler_with_optimizer
 from .utils import detach_and_copy_to_cpu, device, optimal_lr
 
 
@@ -34,8 +35,11 @@ class Trainer:
         train_loader: DataLoader,
         num_epochs: int,
     ) -> TrainingResults:
-        optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
-        scheduler = self.scheduler_factory(optimizer)
+        if self.scheduler_factory == make_super_scheduler_with_optimizer:
+            optimizer, scheduler = make_super_scheduler_with_optimizer(model)
+        else:
+            optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
+            scheduler = self.scheduler_factory(optimizer)
 
         losses = []
         weights = []
@@ -51,7 +55,6 @@ class Trainer:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                scheduler.step()
 
                 # Logging
                 if (i + 1) % 100 == 0:
@@ -69,6 +72,7 @@ class Trainer:
                             weights[-1], weights[-2], weights[-3], epsilon
                         )
                     )
+            scheduler.step()
 
         return TrainingResults(
             losses=losses, scheduler_lrs=scheduler_lrs, optimal_lrs=optimal_lrs

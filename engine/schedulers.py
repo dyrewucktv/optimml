@@ -1,5 +1,5 @@
-from torch.optim.lr_scheduler import LRScheduler
 import torch
+from torch.optim.lr_scheduler import LRScheduler
 
 
 class IdentityLR(object):
@@ -16,11 +16,13 @@ class IdentityLR(object):
 
 
 class SuperLRScheduler(LRScheduler):
+
     def _initial_step(self):
         self.cur_weights = None  # current weights
         self.weights_1 = None  # weights in last epoch
         self.weights_2 = None  # weights in epoch before last epoch
         super()._initial_step()
+        self.previous_lrs = self.base_lrs
 
     def get_lr(self):
         lrs = self.base_lrs
@@ -33,7 +35,7 @@ class SuperLRScheduler(LRScheduler):
                 self.weights_1,
                 self.weights_2,
                 self.cur_weights,
-                self.base_lrs
+                self.previous_lrs,
             ):
                 noms = []
                 denoms = []
@@ -41,11 +43,11 @@ class SuperLRScheduler(LRScheduler):
                     noms.append(torch.sum(torch.abs(w1 - c)).item())
                     denoms.append(
                         max(
-                                torch.sum(torch.abs(2 * w1 - c - w2)).item(),
-                                1e-5
-                            )
+                            torch.sum(torch.abs(2 * w1 - c - w2)).item(), 1e-16
                         )
+                    )
                 lrs.append(lr * sum(noms) / sum(denoms))
+            self.previous_lrs = lrs
 
         # print(self.base_lrs, lrs)
         return lrs
@@ -58,9 +60,15 @@ class SuperLRScheduler(LRScheduler):
 
     def _get_cur_weights(self):
         return [
-                [
-                    param.detach().clone()
-                    for param in group["params"]
-                ]
-                for group in self.optimizer.param_groups
-            ]
+            [param.detach().clone() for param in group["params"]]
+            for group in self.optimizer.param_groups
+        ]
+
+
+def make_super_scheduler_with_optimizer(model):
+    param_groups = []
+    for name, parameter in model.named_parameters():
+        param_groups.append({"params": [parameter]})
+    optimizer = torch.optim.SGD(param_groups, lr=1e-2)
+    scheduler = SuperLRScheduler(optimizer)
+    return optimizer, scheduler
