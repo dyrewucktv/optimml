@@ -23,18 +23,18 @@ def main():
     train_loader, test_loader = get_loaders("lenet")
 
     SCHEDULER_FACTORIES = [
-        ("Constant", IdentityLR),
-        (
-            "OneCycle",
-            partial(
-                OneCycleLR,
-                max_lr=1e-1,
-                steps_per_epoch=len(train_loader),
-                epochs=N_EPOCHS,
-                anneal_strategy="linear",
-                three_phase=True,
-            ),
-        ),
+        # ("Constant", IdentityLR),
+        # (
+        #     "OneCycle",
+        #     partial(
+        #         OneCycleLR,
+        #         max_lr=1e-1,
+        #         steps_per_epoch=len(train_loader),
+        #         epochs=N_EPOCHS,
+        #         anneal_strategy="linear",
+        #         three_phase=True,
+        #     ),
+        # ),
         ("SuperConvergence", make_super_scheduler_with_optimizer),
     ]
 

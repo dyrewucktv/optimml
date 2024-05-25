@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from .schedulers import (
+    SuperLRScheduler,
     get_param_groups_with_names,
     make_super_scheduler_with_optimizer,
 )
@@ -65,6 +66,14 @@ class Trainer:
                 if (i + 1) % 100 == 0:
                     self.log_to_pbar(pbar, epoch + 1, i + 1, loss)
                 losses.append(loss.item())
+
+                # Initial steps for super convergence
+                if (
+                    epoch == 0
+                    and i in (10, 20)
+                    and isinstance(scheduler, SuperLRScheduler)
+                ):
+                    scheduler.step()
 
                 # Calculate optimal LR
                 weights.append(detach_and_copy_to_cpu(model.state_dict()))
